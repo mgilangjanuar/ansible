@@ -1,0 +1,76 @@
+---
+- hosts: virtualbox
+  remote_user: root
+  gather_facts: false   # don't gather facts yet in case if python 2 isn't installed yet
+  become: true
+
+  vars:
+    password: "root"
+
+  pre_tasks:
+    - name: Install python2 for Ansible if not installed
+      shell: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      register: pyinstall_output
+      changed_when: pyinstall_output.stdout != ""
+
+    - setup: # this run gather_facts
+
+  tasks:
+
+    - name: Add ppa:ondrej/php
+      shell: apt-add-repository -y ppa:ondrej/php
+    
+    - name: 'Apt update'
+      apt: update_cache=yes
+
+    - name: Install Apache
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - apache2
+
+    - name: Install PHP 7.1
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - php7.1
+    
+    - name: Disable some Apache2 Module
+      shell: a2dismod {{ item }}
+      with_items:
+        - mpm_event
+    
+    - name: Enable Apache2 Module
+      shell: a2enmod {{ item }}
+      with_items:
+        - mpm_prefork
+        - php7.1
+    
+    - name: Set MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password' value='{{password | quote}}' vtype='password'
+
+    - name: Confirm MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password_again' value='{{password | quote}}' vtype='password'
+    
+    - name: Install MySQL
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - mysql-server
+        - mysql-client
+        - python-mysqldb
+        - php7.1-mysql
+
+    - name: Install PHPMyAdmin
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - phpmyadmin
+    
+    - name: Move PHPMyAdmin to /phpmyadmin
+      shell: ln -s /usr/share/phpmyadmin /var/www/html/ -f
+    
+    - name: Enable PHP Module
+      shell: phpenmod {{ item }}
+      with_items:
+        - mcrypt
+        - mbstring
+    
+    - name: Restart Apache2
+      shell: systemctl restart apache2

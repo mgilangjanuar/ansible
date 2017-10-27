@@ -1,0 +1,7 @@
+---
+- hosts: virtualbox
+  remote_user: root
+
+  tasks:
+    - name: Install sl
+      apt: package=sl state=installed force=yes update_cache=yes cache_valid_time=3600

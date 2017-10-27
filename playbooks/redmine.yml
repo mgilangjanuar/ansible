@@ -1,0 +1,76 @@
+---
+- hosts: virtualbox
+  remote_user: root
+
+  tasks:
+    - name: Install module passenger
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - libapache2-mod-passenger
+    
+    - name: Enable Apache2 Module
+      shell: a2enmod {{ item }}
+      with_items:
+        - passenger
+    
+    - name: Disable interactive installer
+      shell: export DEBIAN_FRONTEND=noninteractive
+
+    - name: Install redmine
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - redmine
+        - redmine-mysql
+
+    - name: Install gem bundler
+      shell: gem install bundler
+    
+    - name: Copy default passenger conf
+      template:
+        src: ../templates/passenger.conf.j2
+        dest: /etc/apache2/mods-available/passenger.conf
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Copy redmine conf
+      template:
+        src: ../templates/redmine.conf.j2
+        dest: /etc/apache2/sites-available/redmine.conf
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Listen port 666
+      template:
+        src: ../templates/ports.conf.j2
+        dest: /etc/apache2/ports.conf
+        owner: root
+        group: root
+        mode: 0755
+    
+    - name: Enable redmine site
+      shell: a2ensite redmine.conf
+  
+    - name: Create plugins directory
+      shell: mkdir -p /usr/share/redmine/plugins
+    
+    - name: Unzipping plugin
+      unarchive:
+        src: ../templates/redmine_agile-1_4_5-light.zip
+        dest: /usr/share/redmine/plugins
+    
+    - name: Install bundle
+      shell: cd /usr/share/redmine; bundle install --without development test --no-deployment
+
+    - name: Execute Agile migration
+      shell: cd /usr/share/redmine; bundle exec rake redmine:plugins NAME=redmine_agile RAILS_ENV=production
+
+    - name: Restart passanger
+      shell: cd /usr/share/redmine; touch tmp/restart.txt
+  
+    - name: Link to /var/www/redmine
+      shell: ln -s /usr/share/redmine/public /var/www/redmine -f
+
+    - name: Restart Apache2
+      shell: service apache2 restart

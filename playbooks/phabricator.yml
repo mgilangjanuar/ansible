@@ -1,0 +1,76 @@
+---
+- hosts: virtualbox
+  remote_user: root
+
+  tasks:
+    
+    - name: Add ppa:ondrej/php
+      shell: apt-add-repository -y ppa:ondrej/php
+    
+    - name: 'Apt update'
+      apt: update_cache=yes
+
+    - name: Install PHP5.6 and stuff
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - php5.6
+        - php5.6-mysql
+        - php5.6-gd
+        - php5.6-curl
+        - php-curl
+        - php5.6-cli
+    
+    - name: Create app directory
+      shell: mkdir -p /var/www/app
+    
+    - name: Clone libphutil
+      git: repo=https://github.com/phacility/libphutil.git
+           dest=/var/www/app/libphutil
+           force=yes
+    
+    - name: Clone arcanist
+      git: repo=https://github.com/phacility/arcanist.git
+           dest=/var/www/app/arcanist
+           force=yes
+    
+    - name: Clone phabricator
+      git: repo=https://github.com/phacility/phabricator.git
+           dest=/var/www/app/phabricator
+           force=yes
+    
+    - name: Enable apache2 modules
+      shell: a2enmod rewrite; a2enmod ssl
+    
+    - name: Copy phabricator conf
+      template:
+        src: ../templates/phabricator.conf.j2
+        dest: /etc/apache2/sites-available/phabricator.conf
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Listen port 999
+      template:
+        src: ../templates/ports.conf.j2
+        dest: /etc/apache2/ports.conf
+        owner: root
+        group: root
+        mode: 0755
+    
+    - name: Enable phabricator site
+      shell: a2ensite phabricator.conf
+    
+    - name: Set MySQL host
+      shell: /var/www/app/phabricator/bin/config set mysql.host localhost
+  
+    - name: Set MySQL user
+      shell: /var/www/app/phabricator/bin/config set mysql.user root
+    
+    - name: Set MySQL pass
+      shell: /var/www/app/phabricator/bin/config set mysql.pass root
+    
+    - name: Upgrade Phabricator storage
+      shell: /var/www/app/phabricator/bin/storage upgrade --user root --password root --force
+    
+    - name: Restart service apache2
+      shell: service apache2 restart

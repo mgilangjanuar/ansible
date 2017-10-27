@@ -1,0 +1,13 @@
+<VirtualHost *:666>
+	ServerAdmin webmaster@localhost
+    ServerName _
+	DocumentRoot /var/www/redmine
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	<Directory /var/www/redmine>
+	    AllowOverride all 
+        Options -MultiViews
+	    RailsBaseURI /
+	    PassengerResolveSymlinksInDocumentRoot on
+	</Directory>
+</VirtualHost>
