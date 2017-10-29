@@ -1,6 +1,7 @@
 ---
-- hosts: virtualbox
+- hosts: localhost
   remote_user: root
+  become: true
 
   tasks:
     
@@ -61,16 +62,18 @@
       shell: a2ensite phabricator.conf
     
     - name: Set MySQL host
-      shell: /var/www/app/phabricator/bin/config set mysql.host localhost
+      shell: /var/www/app/phabricator/bin/config set mysql.host "127.0.0.1"
   
     - name: Set MySQL user
-      shell: /var/www/app/phabricator/bin/config set mysql.user root
+      shell: /var/www/app/phabricator/bin/config set mysql.user "root"
     
     - name: Set MySQL pass
-      shell: /var/www/app/phabricator/bin/config set mysql.pass root
+      shell: /var/www/app/phabricator/bin/config set mysql.pass "root"
     
-    - name: Upgrade Phabricator storage
-      shell: /var/www/app/phabricator/bin/storage upgrade --user root --password root --force
+    # - name: Upgrade Phabricator storage
+    #   shell: /var/www/app/phabricator/bin/storage upgrade --user "root" --password "root" --force
     
     - name: Restart service apache2
-      shell: service apache2 restart
+      service:
+        name: apache2
+        state: restarted

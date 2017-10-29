@@ -1,19 +1,10 @@
 ---
-- hosts: virtualbox
+- hosts: localhost
   remote_user: root
-  gather_facts: false   # don't gather facts yet in case if python 2 isn't installed yet
   become: true
 
   vars:
     password: "root"
-
-  pre_tasks:
-    - name: Install python2 for Ansible if not installed
-      shell: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
-      register: pyinstall_output
-      changed_when: pyinstall_output.stdout != ""
-
-    - setup: # this run gather_facts
 
   tasks:
 
@@ -73,4 +64,6 @@
         - mbstring
     
     - name: Restart Apache2
-      shell: systemctl restart apache2
+      service:
+        name: apache2
+        state: restarted

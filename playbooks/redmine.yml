@@ -1,6 +1,7 @@
 ---
-- hosts: virtualbox
+- hosts: localhost
   remote_user: root
+  become: true
 
   tasks:
     - name: Install module passenger
@@ -73,4 +74,6 @@
       shell: ln -s /usr/share/redmine/public /var/www/redmine -f
 
     - name: Restart Apache2
-      shell: service apache2 restart
+      service:
+        name: apache2
+        state: restarted

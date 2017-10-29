@@ -1,27 +1,15 @@
-ansible
-=======
+Phabricator (Ansible + Docker)
+==============================
 
-Ansible playbook collections for Redmine (+ Agile plugin) and Phabricator.
+Phabricator installer with Docker and Ansible.
 
 ## Requirements
- - Ubuntu >= 16.04
- - SSH
- - Ansible
+ - Docker
 
-## How to install
- - Clone repository `git clone https://github.com/mgilangjanuar/ansible.git`
- - Edit `hosts` with your hosts (default host on `virtualbox`)
- - Install Redmine
-```
-chmod +x install-redmine.sh
-./install-redmine.sh
-```
- - Install Phabricator
-```
-chmod +x install-phabricator.sh
-./install-phabricator.sh
-```
- - Redmine will serve on `http://your-host:666` and Phabricator will serve on `http://your-host:999`
+## How to build and run
+ - Run Docker
+ - Run `docker build -t phabricator`
+ - Run `docker run -d -p 80:80 phabricator`
 
 ## How to contribute
 Please read [CONTRIBUTING.md](https://github.com/mgilangjanuar/ansible/blob/master/CONTRIBUTING.md)
