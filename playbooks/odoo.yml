@@ -1,0 +1,42 @@
+---
+- hosts: virtualbox
+  remote_user: root
+  gather_facts: false   # don't gather facts yet in case if python 2 isn't installed yet
+  become: true
+
+  pre_tasks:
+    - name: Install python2 for Ansible if not installed
+      shell: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      register: pyinstall_output
+      changed_when: pyinstall_output.stdout != ""
+
+    - setup: # this run gather_facts
+
+  tasks:
+    - name: Get Odoo
+      shell: wget -O - https://nightly.odoo.com/odoo.key | apt-key add -
+    
+    - name: Add source apt list
+      shell: echo "deb http://nightly.odoo.com/10.0/nightly/deb/ ./" >> /etc/apt/sources.list.d/odoo.list
+
+    - name: 'Apt update'
+      apt: update_cache=yes
+    
+    - name: Install Odoo
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - odoo
+    
+    - name: Install Postgres
+      apt: package={{ item }} state=installed force=yes update_cache=yes
+      with_items:
+        - postgresql
+    
+    - name: Update database
+      shell: su - postgres -c "createuser -s $USER"
+    
+    - name: Restart Odoo service
+      shell: systemctl restart odoo
+
+    - name: Update firewall
+      shell: ufw allow ssh; ufw allow 8069/tcp; ufw enable;
