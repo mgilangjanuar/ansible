@@ -1,27 +1,17 @@
-ansible
-=======
+Odoo (Ansible + Vagrant)
+===============================
 
-Ansible playbook collections for Redmine (+ Agile plugin) and Phabricator.
+Odoo installer with Vagrant and Ansible.
 
 ## Requirements
- - Ubuntu >= 16.04
- - SSH
- - Ansible
+ - VirtualBox
+ - Vagrant
 
-## How to install
- - Clone repository `git clone https://github.com/mgilangjanuar/ansible.git`
- - Edit `hosts` with your hosts (default host on `virtualbox`)
- - Install Redmine
-```
-chmod +x install-redmine.sh
-./install-redmine.sh
-```
- - Install Phabricator
-```
-chmod +x install-phabricator.sh
-./install-phabricator.sh
-```
- - Redmine will serve on `http://your-host:666` and Phabricator will serve on `http://your-host:999`
+## How to build and run
+ - Clone this repository
+ - Run `vagrant up`
+ - Open browser `http://localhost:8069`
+ - Or download .box from [here](https://github.com/mgilangjanuar/ansible/releases/tag/odoo-0.1) and follow instructions
 
 ## How to contribute
 Please read [CONTRIBUTING.md](https://github.com/mgilangjanuar/ansible/blob/master/CONTRIBUTING.md)
